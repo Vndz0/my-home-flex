@@ -2,144 +2,150 @@ import streamlit as st
 import time
 
 # إعدادات الصفحة
-st.set_page_config(page_title="HomeFlex: 20-Min Split", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="HomeFlex Pro: Custom Split", page_icon="⚡", layout="wide")
 
-# --- قاعدة بيانات التمارين (تقسيم عضلي احترافي) ---
+# --- قاعدة بيانات التمارين مع البدائل والإحماء ---
 workout_database = {
-    "Day 1: Arms (Biceps & Triceps)": [
-        {"name": "Wall Bicep Curls (No weights)", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=iOaT_u6v-s8"},
-        {"name": "Tricep Wall Dips", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw"},
-        {"name": "Diamond Wall Push-ups", "target": 10, "type": "Reps", "video": "https://www.youtube.com/watch?v=33mU_6A8_S0"},
-        {"name": "Arm Circles (Clockwise)", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=1rP_Y_V-A7W0"},
-        {"name": "Forearm Plank Pulse", "target": 20, "type": "Reps", "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw"}
-    ],
-    "Day 2: Legs (Quads & Glutes)": [
-        {"name": "Wall Sit", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=y-wV4Venusw"},
-        {"name": "Chair Squats", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=1uPrX7tovfM"},
-        {"name": "Glute Bridges", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=8bbE6adQTpM"},
-        {"name": "Alternating Forward Lunges", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=COKYKgQ8KR0"},
-        {"name": "Calf Raises", "target": 20, "type": "Reps", "video": "https://www.youtube.com/watch?v=gwLzBJYoWlU"}
-    ],
-    "Day 3: Back & Neck (Posture)": [
-        {"name": "Bird-Dog (Back focus)", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=2SSTInV6C_c"},
-        {"name": "Cobra Stretch Hold", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=z21McHHOpAg"},
-        {"name": "Shoulder Blade Squeezes", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=L_6vE_7U3-4"},
-        {"name": "Superman Hold", "target": 10, "type": "Reps", "video": "https://www.youtube.com/watch?v=z6jBReW_SdU"},
-        {"name": "Neck Range Motion Stretch", "target": 40, "type": "Time", "video": "https://www.youtube.com/watch?v=wiFNA3sqjCb"}
-    ],
-    "Day 4: Chest (Push Power)": [
-        {"name": "Standard Wall Push-ups", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw"},
-        {"name": "Wide Grip Wall Push-ups", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=33mU_6A8_S0"},
-        {"name": "Chest Expansion Stretch", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=mGzI60mP_9k"},
-        {"name": "Slow Dynamic Push-offs", "target": 10, "type": "Reps", "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw"},
-        {"name": "Isometric Chest Press", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=wiFNA3sqjCb"}
-    ],
-    "Day 5: Abs (Core Stability)": [
-        {"name": "High Plank Hold", "target": 40, "type": "Time", "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw"},
-        {"name": "Mountain Climbers (Slow)", "target": 20, "type": "Reps", "video": "https://www.youtube.com/watch?v=zT-9L37Re9Y"},
-        {"name": "Standing Knee to Elbow", "target": 16, "type": "Reps", "video": "https://www.youtube.com/watch?v=iSSAk4XCs_4"},
-        {"name": "Dead Bug Hold", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=2SSTInV6C_c"},
-        {"name": "Child's Pose Recovery", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=2vLY7J_V0ps"}
-    ]
+    "Day 1: Arms (Biceps & Triceps)": {
+        "warmup": {"name": "Arm Circles & Wrist Rotations", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=1rP_Y_V-A7W0"},
+        "exercises": [
+            {"name": "Wall Bicep Curls", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=iOaT_u6v-s8", "alts": ["Towel Curls", "Door Frame Rows"]},
+            {"name": "Tricep Wall Dips", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw", "alts": ["Overhead Arm Extension", "Chair Dips"]},
+            {"name": "Diamond Wall Push-ups", "target": 10, "type": "Reps", "video": "https://www.youtube.com/watch?v=33mU_6A8_S0", "alts": ["Close Grip Push-offs", "Plank Shoulder Taps"]}
+        ]
+    },
+    "Day 2: Legs (Quads & Glutes)": {
+        "warmup": {"name": "Marching in Place", "target": 60, "type": "Time", "video": "https://www.youtube.com/watch?v=vX_Y_V-A7W0"},
+        "exercises": [
+            {"name": "Wall Sit", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=y-wV4Venusw", "alts": ["Statue Hold", "Glute Bridge Hold"]},
+            {"name": "Chair Squats", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=1uPrX7tovfM", "alts": ["Sumo Squats", "Step-ups"]},
+            {"name": "Forward Lunges", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=COKYKgQ8KR0", "alts": ["Side Lunges", "Reverse Lunges"]}
+        ]
+    },
+    "Day 3: Back & Neck (Posture)": {
+        "warmup": {"name": "Cat-Cow Stretch", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=wiFNA3sqjCb"},
+        "exercises": [
+            {"name": "Bird-Dog", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=2SSTInV6C_c", "alts": ["Dead Bug", "Prone Y-Raise"]},
+            {"name": "Cobra Stretch", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=z21McHHOpAg", "alts": ["Sphinx Pose", "Wall Angels"]},
+            {"name": "Shoulder Squeezes", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=L_6vE_7U3-4", "alts": ["Scapular Push-ups", "Wall Pull-aparts"]}
+        ]
+    },
+    "Day 4: Chest (Push Power)": {
+        "warmup": {"name": "Chest Expansions", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=mGzI60mP_9k"},
+        "exercises": [
+            {"name": "Standard Wall Push-ups", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw", "alts": ["Incline Bench Push-ups", "Knee Push-ups"]},
+            {"name": "Wide Grip Push-ups", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=33mU_6A8_S0", "alts": ["Staggered Push-ups", "Chest Squeeze Press"]}
+        ]
+    },
+    "Day 5: Abs (Core Stability)": {
+        "warmup": {"name": "Torso Twists", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=iSSAk4XCs_4"},
+        "exercises": [
+            {"name": "High Plank Hold", "target": 40, "type": "Time", "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw", "alts": ["Forearm Plank", "Bear Crawl Hold"]},
+            {"name": "Mountain Climbers", "target": 20, "type": "Reps", "video": "https://www.youtube.com/watch?v=zT-9L37Re9Y", "alts": ["Bicycle Crunches", "Knee to Chest"]}
+        ]
+    }
 }
 
-# --- إدارة الحالة (Session State) ---
+# --- إدارة الحالة ---
 if 'status' not in st.session_state: st.session_state.status = "SELECT"
 if 'current_day' not in st.session_state: st.session_state.current_day = None
 if 'ex_idx' not in st.session_state: st.session_state.ex_idx = 0
 if 'current_set' not in st.session_state: st.session_state.current_set = 1
 if 'total_sets' not in st.session_state: st.session_state.total_sets = 3
+if 'custom_plan' not in st.session_state: st.session_state.custom_plan = []
 
 def play_audio(url):
     st.components.v1.html(f'<audio autoplay><source src="{url}" type="audio/mpeg"></audio>', height=0)
 
-# --- واجهة التطبيق ---
-st.title("⚡ HomeFlex: 20-Min Daily Trainer")
+# --- الواجهة ---
+st.title("⚡ HomeFlex Elite: Customized Split")
 
-# 1. شاشة اختيار اليوم
 if st.session_state.status == "SELECT":
-    st.header("Step 1: Select Today's Workout")
+    st.header("Step 1: Choose Your Training Day")
     for day in workout_database.keys():
         if st.button(f"📅 {day}", use_container_width=True):
             st.session_state.current_day = day
+            # تحويل اليوم المختار لخطة قابلة للتعديل
+            day_data = workout_database[day]
+            st.session_state.custom_plan = [day_data['warmup']] + [ex.copy() for ex in day_data['exercises']]
             st.session_state.status = "PREVIEW"
             st.rerun()
 
-# 2. شاشة المعاينة (Preview)
 elif st.session_state.status == "PREVIEW":
     st.header(f"Preview: {st.session_state.current_day}")
-    st.session_state.total_sets = st.slider("Select Rounds (Default 3 is recommended for 20 mins):", 1, 5, 3)
+    st.session_state.total_sets = st.slider("Select Rounds (Sets):", 1, 5, 3)
     
-    st.write("Click to learn the technique:")
-    day_exercises = workout_database[st.session_state.current_day]
-    for idx, ex in enumerate(day_exercises):
-        with st.expander(f"{idx+1}. {ex['name']}"):
-            st.video(ex['video'])
+    st.write("---")
+    st.subheader("Customize Your Routine:")
+    
+    for i, ex in enumerate(st.session_state.custom_plan):
+        with st.expander(f"{'Warm-up' if i==0 else 'Ex '+str(i)}: {ex['name']}"):
+            if 'video' in ex: st.video(ex['video'])
             st.code(ex['name'], language="text")
-
+            
+            # خيار تبديل التمرين إذا لم يكن تمرين إحماء وله بدائل
+            if i > 0 and 'alts' in ex:
+                alt_choice = st.radio(f"Replace {ex['name']} with:", [ex['name']] + ex['alts'], key=f"alt_{i}")
+                if alt_choice != ex['name']:
+                    ex['name'] = alt_choice
+                    # ملاحظة: الفيديو سيبقى للأصلي كمرجع تقني عام، لكن الاسم سيتغير
+    
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🚀 Start Workout", use_container_width=True):
+        if st.button("🚀 Start Personalized Workout", use_container_width=True):
             st.session_state.ex_idx = 0
             st.session_state.current_set = 1
             st.session_state.status = "WORKOUT"
             st.rerun()
     with col2:
-        if st.button("⬅️ Menu", use_container_width=True):
+        if st.button("⬅️ Back", use_container_width=True):
             st.session_state.status = "SELECT"
             st.rerun()
 
-# 3. شاشة التمرين (Workout Mode)
 elif st.session_state.status == "WORKOUT":
-    day_exercises = workout_database[st.session_state.current_day]
-    ex = day_exercises[st.session_state.ex_idx]
+    ex = st.session_state.custom_plan[st.session_state.ex_idx]
     
-    st.warning(f"⭕ Round: {st.session_state.current_set} / {st.session_state.total_sets}")
-    st.markdown(f"### Exercise {st.session_state.ex_idx + 1} of {len(day_exercises)}")
+    st.warning(f"⭕ Set: {st.session_state.current_set} / {st.session_state.total_sets}")
     st.title(ex['name'])
-    st.code(ex['name'], language="text") # لسهولة النسخ
-    
-    st.metric(label="Target Goal", value=f"{ex['target']} {ex['type']}")
+    st.code(ex['name'], language="text")
+    st.metric("Goal", f"{ex['target']} {ex['type']}")
     
     col1, col2, col3 = st.columns(3)
     with col1:
         if ex['type'] == "Time":
-            if st.button("⏱️ Start Timer"):
-                t_place = st.empty()
+            if st.button("⏱️ Start"):
+                p = st.empty()
                 for s in range(ex['target'], -1, -1):
-                    t_place.header(f"⏳ {s}s")
+                    p.header(f"⏳ {s}s")
                     time.sleep(1)
                 play_audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3")
                 st.session_state.status = "REST"
                 st.rerun()
         else:
-            if st.button("Next (Done) ✅", use_container_width=True):
+            if st.button("Done ✅"):
                 play_audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3")
                 st.session_state.status = "REST"
                 st.rerun()
-
     with col2:
         if st.button("Skip ⏭️"):
             st.session_state.status = "REST"
             st.rerun()
-    
     with col3:
         if st.button("Stop 🛑"):
             st.session_state.status = "SELECT"
             st.rerun()
 
-# 4. شاشة الراحة (Rest Interval)
 elif st.session_state.status == "REST":
-    st.subheader("🥤 Rest Interval (30s)")
-    if st.button("Skip Rest ⏩"):
-        day_exercises = workout_database[st.session_state.current_day]
-        if st.session_state.ex_idx < len(day_exercises) - 1:
+    st.subheader("🥤 Rest")
+    if st.button("Skip ⏩"):
+        # منطق الانتقال
+        if st.session_state.ex_idx < len(st.session_state.custom_plan) - 1:
             st.session_state.ex_idx += 1
             st.session_state.status = "WORKOUT"
         else:
             if st.session_state.current_set < st.session_state.total_sets:
                 st.session_state.current_set += 1
-                st.session_state.ex_idx = 0
+                st.session_state.ex_idx = 1 # ابدأ من التمرين الأول بعد الإحماء
                 st.session_state.status = "WORKOUT"
             else:
                 st.session_state.status = "SELECT"
@@ -147,23 +153,22 @@ elif st.session_state.status == "REST":
 
     p = st.empty()
     for i in range(30, -1, -1):
-        p.metric("Get Ready...", f"{i}s")
+        p.metric("Ready?", f"{i}s")
         time.sleep(1)
     
     play_audio("https://www.soundjay.com/misc/sounds/referee-whistle-01.mp3")
     
-    day_exercises = workout_database[st.session_state.current_day]
-    if st.session_state.ex_idx < len(day_exercises) - 1:
+    if st.session_state.ex_idx < len(st.session_state.custom_plan) - 1:
         st.session_state.ex_idx += 1
         st.session_state.status = "WORKOUT"
     else:
         if st.session_state.current_set < st.session_state.total_sets:
             st.session_state.current_set += 1
-            st.session_state.ex_idx = 0
+            st.session_state.ex_idx = 1 # لا نعيد الإحماء في الجولات التالية
             st.session_state.status = "WORKOUT"
         else:
             st.balloons()
-            st.success("20-Minute Session Complete!")
-            time.sleep(3)
+            st.success("Session Finished!")
+            time.sleep(2)
             st.session_state.status = "SELECT"
     st.rerun()
