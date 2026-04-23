@@ -2,43 +2,36 @@ import streamlit as st
 import time
 
 # إعدادات الصفحة
-st.set_page_config(page_title="HomeFlex Pro: YouTube Edition", page_icon="📺")
+st.set_page_config(page_title="HomeFlex Pro: Verified Edition", page_icon="💪")
 
-# التنسيق الجمالي
-st.markdown("""
-    <style>
-    .stVideo { border-radius: 15px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,255,204,0.3); }
-    </style>
-    """, unsafe_allow_html=True)
-
-# قاعدة بيانات التمارين مع روابط يوتيوب
+# قاعدة بيانات التمارين مع روابط يوتيوب تعمل (Verified Embeds)
 workout_data = [
     {
         "name": "Glute Bridges (جسر الحوض)",
         "target": 12,
         "type": "Reps",
-        "desc": "تمرين أساسي لتنشيط العضلات الخاملة وتقوية أسفل الظهر.",
-        "video": "https://www.youtube.com/watch?v=wPM8icPu6H8"
+        "desc": "استلقِ على ظهرك وارفع حوضك. يركز هذا التمرين على تنشيط عضلات المقعدة وأسفل الظهر.",
+        "video": "https://www.youtube.com/watch?v=8bbE6adQTpM"
     },
     {
         "name": "Wall Push-ups (الضغط على الحائط)",
         "target": 10,
         "type": "Reps",
-        "desc": "بديل آمن وسهل للضغط العادي، يقوي الصدر والأكتاف.",
-        "video": "https://www.youtube.com/watch?v=a6YHbXbeZ3M"
+        "desc": "تمرين رائع لتقوية الصدر والذراعين بدون ضغط كبير على المفاصل.",
+        "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw"
     },
     {
-        "name": "Bird-Dog (تمرين الكلب الطائر)",
+        "name": "Bird-Dog (الكلب الطائر)",
         "target": 10,
         "type": "Reps",
-        "desc": "يركز على التوازن وتقوية عضلات الكور والظهر.",
-        "video": "https://www.youtube.com/watch?v=wiFNA3sqjCb"
+        "desc": "يركز على تقوية عضلات الكور (Core) وزيادة توازن العمود الفقري.",
+        "video": "https://www.youtube.com/watch?v=2SSTInV6C_c"
     },
     {
-        "name": "Plank (تمرين البلانك)",
+        "name": "Plank (البلانك التقليدي)",
         "target": 30,
         "type": "Time",
-        "desc": "أفضل تمرين لشد الجسم بالكامل وزيادة التحمل.",
+        "desc": "حافظ على استقامة جسمك كلوح خشبي. تمرين جبار لشد كامل الجسم.",
         "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw"
     }
 ]
@@ -49,45 +42,54 @@ if 'step' not in st.session_state:
 if 'is_resting' not in st.session_state:
     st.session_state.is_resting = False
 
-# شاشة الراحة
-def show_rest():
-    st.warning("🥤 وقت الراحة (30 ثانية)")
-    st.write("خذ نفساً عميقاً واستعد للتمرين التالي...")
-    placeholder = st.empty()
-    for i in range(30, 0, -1):
-        placeholder.subheader(f"متبقي: {i} ثانية")
-        time.sleep(1)
+# دالة الانتقال للتمرين التالي
+def go_to_next():
     st.session_state.is_resting = False
     st.session_state.step += 1
     st.rerun()
 
 # واجهة التطبيق
-st.title("📺 HomeFlex YouTube Edition")
+st.title("💪 HomeFlex: النسخة المطورة")
 
 if st.session_state.is_resting:
-    show_rest()
+    st.subheader("🥤 وقت الراحة")
+    st.info("استرخِ قليلاً، خذ شهيقاً وعميقاً...")
+    
+    # زر التخطي
+    if st.button("تخطي الراحة ⏩"):
+        go_to_next()
+    
+    # عداد الراحة
+    placeholder = st.empty()
+    for i in range(30, 0, -1):
+        placeholder.metric("الوقت المتبقي للراحة", f"{i} ثانية")
+        time.sleep(1)
+    
+    go_to_next()
+
 else:
     if st.session_state.step < len(workout_data):
         current_ex = workout_data[st.session_state.step]
         
-        # 1. عرض فيديو يوتيوب
+        # عرض الفيديو
         st.video(current_ex['video'])
         
-        # 2. معلومات التمرين
-        st.header(current_ex['name'])
-        st.info(current_ex['desc'])
-        st.subheader(f"الهدف المطلوب: {current_ex['target']} {'ثانية' if current_ex['type'] == 'Time' else 'عدات'}")
+        # معلومات التمرين
+        st.header(f"{st.session_state.step + 1}. {current_ex['name']}")
+        st.write(current_ex['desc'])
         
-        # 3. التحكم والعداد
+        # الهدف والعداد
+        st.markdown(f"### الهدف: **{current_ex['target']} {'ثانية' if current_ex['type'] == 'Time' else 'تكرار'}**")
+        
         col1, col2 = st.columns(2)
         with col1:
             if current_ex['type'] == 'Time':
                 if st.button("⏱️ ابدأ العداد"):
-                    t_place = st.empty()
+                    timer_place = st.empty()
                     for s in range(current_ex['target'], 0, -1):
-                        t_place.header(f"🔥 {s} ثانية")
+                        timer_place.subheader(f"🔥 {s} ثانية متبقية")
                         time.sleep(1)
-                    st.success("تم!")
+                    st.success("انتهى الوقت! عمل رائع.")
         
         with col2:
             if st.button("انتهيت! (بدء الراحة) ➡️"):
@@ -99,7 +101,10 @@ else:
                 
     else:
         st.balloons()
-        st.success("🏆 بطل! أنهيت جدول اليوم بنجاح.")
-        if st.button("البدء من جديد (يوم 1)"):
+        st.success("🎊 مذهل! لقد أكملت تمارين اليوم.")
+        if st.button("إعادة البرنامج من اليوم الأول"):
             st.session_state.step = 0
             st.rerun()
+
+st.markdown("---")
+st.caption("تطبيق HomeFlex - رفيقك لاستعادة نشاطك البدني")
