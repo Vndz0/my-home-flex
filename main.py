@@ -1,194 +1,229 @@
 import streamlit as st
 import time
+import json
+import os
+import random
 
-# إعدادات الصفحة
-st.set_page_config(page_title="HomeFlex: Pro Preview", page_icon="📋", layout="wide")
+st.set_page_config(page_title="HomeFlex Elite", page_icon="💪", layout="wide")
 
-# --- قاعدة بيانات التمارين (الأساسي + البدائل) ---
+# ================== STORAGE ==================
+DATA_FILE = "user_data.json"
+
+def load_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as f:
+            return json.load(f)
+    return {"history": [], "points": 0, "streak": 0}
+
+def save_data(data):
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f)
+
+user_data = load_data()
+
+# ================== DATABASE ==================
 workout_database = {
-    "Day 1: Arms (Biceps & Triceps)": {
-        "warmup": {"name": "Arm Circles & Wrist Rotations", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=1rP_Y_V-A7W0"},
-        "exercises": [
-            {"name": "Wall Bicep Curls", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=iOaT_u6v-s8", "alts": ["Towel Curls", "Door Frame Rows"]},
-            {"name": "Tricep Wall Dips", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw", "alts": ["Overhead Arm Extension", "Chair Dips"]},
-            {"name": "Diamond Wall Push-ups", "target": 10, "type": "Reps", "video": "https://www.youtube.com/watch?v=33mU_6A8_S0", "alts": ["Close Grip Push-offs", "Plank Shoulder Taps"]}
-        ]
-    },
-    "Day 2: Legs (Quads & Glutes)": {
-        "warmup": {"name": "Marching in Place", "target": 60, "type": "Time", "video": "https://www.youtube.com/watch?v=vX_Y_V-A7W0"},
-        "exercises": [
-            {"name": "Wall Sit", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=y-wV4Venusw", "alts": ["Statue Hold", "Glute Bridge Hold"]},
-            {"name": "Chair Squats", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=1uPrX7tovfM", "alts": ["Sumo Squats", "Step-ups"]},
-            {"name": "Forward Lunges", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=COKYKgQ8KR0", "alts": ["Side Lunges", "Reverse Lunges"]}
-        ]
-    },
-    "Day 3: Back & Neck (Posture)": {
-        "warmup": {"name": "Cat-Cow Stretch", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=wiFNA3sqjCb"},
-        "exercises": [
-            {"name": "Bird-Dog", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=2SSTInV6C_c", "alts": ["Dead Bug", "Prone Y-Raise"]},
-            {"name": "Cobra Stretch", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=z21McHHOpAg", "alts": ["Sphinx Pose", "Wall Angels"]},
-            {"name": "Shoulder Squeezes", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=L_6vE_7U3-4", "alts": ["Scapular Push-ups", "Wall Pull-aparts"]}
-        ]
-    },
-    "Day 4: Chest (Push Power)": {
-        "warmup": {"name": "Chest Expansions", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=mGzI60mP_9k"},
-        "exercises": [
-            {"name": "Standard Wall Push-ups", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw", "alts": ["Incline Bench Push-ups", "Knee Push-ups"]},
-            {"name": "Wide Grip Push-ups", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=33mU_6A8_S0", "alts": ["Staggered Push-ups", "Chest Squeeze Press"]}
-        ]
-    },
-    "Day 5: Abs (Core Stability)": {
-        "warmup": {"name": "Torso Twists", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=iSSAk4XCs_4"},
-        "exercises": [
-            {"name": "High Plank Hold", "target": 40, "type": "Time", "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw", "alts": ["Forearm Plank", "Bear Crawl Hold"]},
-            {"name": "Mountain Climbers", "target": 20, "type": "Reps", "video": "https://www.youtube.com/watch?v=zT-9L37Re9Y", "alts": ["Bicycle Crunches", "Knee to Chest"]}
-        ]
-    }
+    "Arms (Biceps & Triceps)": [
+        {
+            "name": "Wall Bicep Curls",
+            "desc": "Controlled curl motion focusing on tension.",
+            "target": 15,
+            "type": "Reps",
+            "video": "https://www.youtube.com/watch?v=iOaT_u6v-s8",
+            "alts": [
+                {"name": "Towel Bicep Curls", "desc": "Use towel resistance.", "video": "https://www.youtube.com/watch?v=av7-8igSXTs"},
+                {"name": "Door Frame Rows", "desc": "Pull using door frame.", "video": "https://www.youtube.com/watch?v=GZbfZ033f74"}
+            ]
+        },
+        {
+            "name": "Chair Tricep Dips",
+            "desc": "Lower body using chair.",
+            "target": 12,
+            "type": "Reps",
+            "video": "https://www.youtube.com/watch?v=0326dy_-CzM",
+            "alts": [
+                {"name": "Bench Dips", "desc": "Same movement on bench.", "video": "https://www.youtube.com/watch?v=0326dy_-CzM"},
+                {"name": "Overhead Extension", "desc": "Bodyweight extension.", "video": "https://www.youtube.com/watch?v=_gsUck-7M74"}
+            ]
+        }
+    ],
+
+    "Legs (Quads & Glutes)": [
+        {
+            "name": "Chair Squats",
+            "desc": "Sit and stand with control.",
+            "target": 15,
+            "type": "Reps",
+            "video": "https://www.youtube.com/watch?v=1uPrX7tovfM",
+            "alts": [
+                {"name": "Sumo Squats", "desc": "Wide stance squat.", "video": "https://www.youtube.com/watch?v=aclHkVaku9U"},
+                {"name": "Step Ups", "desc": "Step onto chair.", "video": "https://www.youtube.com/watch?v=dQqApCGd5Ss"}
+            ]
+        }
+    ]
 }
 
-# --- إدارة الحالة ---
-if 'status' not in st.session_state: st.session_state.status = "SELECT"
-if 'current_day' not in st.session_state: st.session_state.current_day = None
-if 'ex_idx' not in st.session_state: st.session_state.ex_idx = 0
-if 'current_set' not in st.session_state: st.session_state.current_set = 1
-if 'total_sets' not in st.session_state: st.session_state.total_sets = 3
-if 'final_plan' not in st.session_state: st.session_state.final_plan = []
+# ================== SESSION ==================
+if "page" not in st.session_state: st.session_state.page = "menu"
+if "plan" not in st.session_state: st.session_state.plan = []
+if "selected" not in st.session_state: st.session_state.selected = {}
+if "ex_idx" not in st.session_state: st.session_state.ex_idx = 0
+if "set" not in st.session_state: st.session_state.set = 1
+if "sets" not in st.session_state: st.session_state.sets = 3
 
-def play_audio(url):
-    st.components.v1.html(f'<audio autoplay><source src="{url}" type="audio/mpeg"></audio>', height=0)
+# ================== HEADER ==================
+st.title("🔥 HomeFlex Elite")
 
-# --- الواجهة ---
-st.title("⚡ HomeFlex Elite: Smart Preview")
+col1, col2, col3 = st.columns(3)
+col1.metric("🔥 Streak", user_data["streak"])
+col2.metric("🏆 Points", user_data["points"])
+col3.metric("📈 Level", user_data["points"] // 100)
 
-# 1. شاشة الاختيار
-if st.session_state.status == "SELECT":
-    st.header("Select Your Training Day")
-    for day in workout_database.keys():
-        if st.button(f"📅 {day}", use_container_width=True):
+st.divider()
+
+# ================== MENU ==================
+if st.session_state.page == "menu":
+
+    st.subheader("Choose Workout")
+
+    for day in workout_database:
+        if st.button(day, use_container_width=True):
             st.session_state.current_day = day
-            st.session_state.status = "PREVIEW"
+            st.session_state.page = "preview"
+            st.session_state.selected = {}
             st.rerun()
 
-# 2. شاشة المعاينة المنظمة
-elif st.session_state.status == "PREVIEW":
-    st.header(f"Preview & Customize: {st.session_state.current_day}")
-    day_data = workout_database[st.session_state.current_day]
-    
-    st.session_state.total_sets = st.slider("Select Rounds (Sets):", 1, 5, 3)
-    
-    # قائمة مؤقتة لتخزين خيارات المستخدم
-    user_choices = []
-    
-    # أ- عرض الإحماء
-    with st.expander(f"🔥 Warm-up: {day_data['warmup']['name']}"):
-        st.video(day_data['warmup']['video'])
-        st.code(day_data['warmup']['name'], language="text")
-        user_choices.append(day_data['warmup'])
-    
-    st.write("---")
-    st.subheader("Exercise Circuit (Choose your alternatives):")
-    
-    # ب- عرض التمارين مع بدائلها المستقلة
-    for i, ex in enumerate(day_data['exercises']):
-        with st.expander(f"🏋️ Exercise {i+1}: {ex['name']}"):
-            st.video(ex['video'])
-            
-            # راديو لاختيار البديل لهذا التمرين حصراً
-            choice = st.radio(
-                f"Choose version for Ex {i+1}:",
-                [ex['name']] + ex['alts'],
-                key=f"choice_{st.session_state.current_day}_{i}"
-            )
-            
-            selected_ex = ex.copy()
-            selected_ex['name'] = choice
-            user_choices.append(selected_ex)
-            
-            st.write(f"Currently selected: `{choice}`")
-
-    # حفظ الخطة النهائية في Session State
-    st.session_state.final_plan = user_choices
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🚀 Start Workout", use_container_width=True):
-            st.session_state.ex_idx = 0
-            st.session_state.current_set = 1
-            st.session_state.status = "WORKOUT"
-            st.rerun()
-    with col2:
-        if st.button("⬅️ Menu", use_container_width=True):
-            st.session_state.status = "SELECT"
-            st.rerun()
-
-# 3. شاشة التمرين
-elif st.session_state.status == "WORKOUT":
-    ex = st.session_state.final_plan[st.session_state.ex_idx]
-    
-    st.warning(f"⭕ Set: {st.session_state.current_set} / {st.session_state.total_sets}")
-    st.title(ex['name'])
-    st.code(ex['name'], language="text")
-    st.metric("Goal", f"{ex['target']} {ex['type']}")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if ex['type'] == "Time":
-            if st.button("⏱️ Start"):
-                p = st.empty()
-                for s in range(ex['target'], -1, -1):
-                    p.header(f"⏳ {s}s")
-                    time.sleep(1)
-                play_audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3")
-                st.session_state.status = "REST"
-                st.rerun()
-        else:
-            if st.button("Done ✅"):
-                play_audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3")
-                st.session_state.status = "REST"
-                st.rerun()
-    with col2:
-        if st.button("Skip ⏭️"):
-            st.session_state.status = "REST"
-            st.rerun()
-    with col3:
-        if st.button("Stop 🛑"):
-            st.session_state.status = "SELECT"
-            st.rerun()
-
-# 4. شاشة الراحة
-elif st.session_state.status == "REST":
-    st.subheader("🥤 Rest Interval")
-    if st.button("Skip Rest ⏩"):
-        if st.session_state.ex_idx < len(st.session_state.final_plan) - 1:
-            st.session_state.ex_idx += 1
-            st.session_state.status = "WORKOUT"
-        else:
-            if st.session_state.current_set < st.session_state.total_sets:
-                st.session_state.current_set += 1
-                st.session_state.ex_idx = 1
-                st.session_state.status = "WORKOUT"
-            else:
-                st.session_state.status = "SELECT"
+    if st.button("⚡ Quick Start"):
+        st.session_state.current_day = random.choice(list(workout_database.keys()))
+        st.session_state.page = "preview"
         st.rerun()
 
-    p = st.empty()
-    for i in range(30, -1, -1):
-        p.metric("Get Ready...", f"{i}s")
-        time.sleep(1)
-    
-    play_audio("https://www.soundjay.com/misc/sounds/referee-whistle-01.mp3")
-    
-    if st.session_state.ex_idx < len(st.session_state.final_plan) - 1:
-        st.session_state.ex_idx += 1
-        st.session_state.status = "WORKOUT"
+# ================== PREVIEW ==================
+elif st.session_state.page == "preview":
+
+    st.header(st.session_state.current_day)
+
+    exercises = workout_database[st.session_state.current_day]
+
+    for i, ex in enumerate(exercises):
+
+        selected = st.session_state.selected.get(i, ex)
+
+        st.subheader(f"Exercise {i+1}")
+
+        st.video(selected["video"])
+
+        c1, c2 = st.columns([4,1])
+        with c1:
+            st.markdown(f"### {selected['name']}")
+        with c2:
+            st.code(selected["name"])
+
+        st.info(selected["desc"])
+        st.metric("Target", f"{selected['target']} {selected['type']}")
+
+        st.write("Alternatives:")
+
+        cols = st.columns(2)
+
+        for j, alt in enumerate(ex["alts"]):
+            with cols[j]:
+                if st.button(alt["name"], key=f"{i}_{j}"):
+                    st.session_state.selected[i] = {
+                        "name": alt["name"],
+                        "video": alt["video"],
+                        "desc": alt["desc"],
+                        "target": ex["target"],
+                        "type": ex["type"]
+                    }
+                    st.rerun()
+
+        if i in st.session_state.selected:
+            if st.button("Use Original", key=f"reset_{i}"):
+                del st.session_state.selected[i]
+                st.rerun()
+
+        st.divider()
+
+    # build plan
+    plan = []
+    for i, ex in enumerate(exercises):
+        plan.append(st.session_state.selected.get(i, ex))
+
+    st.session_state.plan = plan
+
+    st.session_state.sets = st.slider("Sets", 1, 5, 3)
+
+    if st.button("🚀 Start"):
+        st.session_state.ex_idx = 0
+        st.session_state.set = 1
+        st.session_state.page = "workout"
+        st.rerun()
+
+    if st.button("⬅️ Back"):
+        st.session_state.page = "menu"
+        st.rerun()
+
+# ================== WORKOUT ==================
+elif st.session_state.page == "workout":
+
+    ex = st.session_state.plan[st.session_state.ex_idx]
+
+    st.warning(f"Set {st.session_state.set}/{st.session_state.sets}")
+    st.title(ex["name"])
+    st.metric("Target", f"{ex['target']} {ex['type']}")
+
+    progress = (st.session_state.ex_idx + 1) / len(st.session_state.plan)
+    st.progress(progress)
+
+    if ex["type"] == "Time":
+        if st.button("Start Timer"):
+            for i in range(ex["target"], -1, -1):
+                st.write(f"{i}s")
+                time.sleep(1)
+            st.session_state.page = "rest"
+            st.rerun()
     else:
-        if st.session_state.current_set < st.session_state.total_sets:
-            st.session_state.current_set += 1
-            st.session_state.ex_idx = 1
-            st.session_state.status = "WORKOUT"
+        if st.button("Done"):
+            st.session_state.page = "rest"
+            st.rerun()
+
+    if st.button("Skip"):
+        st.session_state.page = "rest"
+        st.rerun()
+
+# ================== REST ==================
+elif st.session_state.page == "rest":
+
+    st.subheader("Rest Time")
+
+    rest_time = 20 if st.session_state.plan[st.session_state.ex_idx]["type"] == "Time" else 30
+
+    for i in range(rest_time, -1, -1):
+        st.metric("Rest", f"{i}s")
+        time.sleep(1)
+
+    if st.session_state.ex_idx < len(st.session_state.plan) - 1:
+        st.session_state.ex_idx += 1
+        st.session_state.page = "workout"
+    else:
+        if st.session_state.set < st.session_state.sets:
+            st.session_state.set += 1
+            st.session_state.ex_idx = 0
+            st.session_state.page = "workout"
         else:
-            st.balloons()
-            st.success("Session Finished!")
+            st.success("Workout Finished 🎉")
+
+            # تحديث البيانات
+            user_data["points"] += 20
+            user_data["streak"] += 1
+            user_data["history"].append({
+                "day": st.session_state.current_day,
+                "time": time.time()
+            })
+            save_data(user_data)
+
             time.sleep(2)
-            st.session_state.status = "SELECT"
+            st.session_state.page = "menu"
+
     st.rerun()
