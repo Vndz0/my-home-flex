@@ -2,70 +2,67 @@ import streamlit as st
 import time
 
 # إعدادات الصفحة
-st.set_page_config(page_title="HomeFlex Elite", page_icon="💪", layout="wide")
+st.set_page_config(page_title="HomeFlex: Circuit Trainer", page_icon="🔁", layout="wide")
 
-# --- قاعدة بيانات التمارين المكثفة (مثال ليوم واحد، يمكنك تكرار النمط لبقية الأيام) ---
-# قمت بوضع 10 تمارين كمثال لهذا اليوم
-full_body_plan = [
-    {"name": "Dynamic Neck & Shoulder Warm-up", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=L_6vE_7U3-4"},
-    {"name": "Arm Circles", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=1rP_Y_V-A7W0"},
-    {"name": "Wall Push-ups", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw"},
-    {"name": "Incline Push-ups", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=33mU_6A8_S0"},
-    {"name": "Bodyweight Squats", "target": 20, "type": "Reps", "video": "https://www.youtube.com/watch?v=1uPrX7tovfM"},
-    {"name": "Lunges (Alternating)", "target": 16, "type": "Reps", "video": "https://www.youtube.com/watch?v=COKYKgQ8KR0"},
-    {"name": "Glute Bridges", "target": 20, "type": "Reps", "video": "https://www.youtube.com/watch?v=8bbE6adQTpM"},
-    {"name": "Bird-Dog Hold", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=2SSTInV6C_c"},
-    {"name": "Classic Plank", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw"},
-    {"name": "Cobra Stretch (Cool Down)", "target": 40, "type": "Time", "video": "https://www.youtube.com/watch?v=z21McHHOpAg"}
+# --- قاعدة بيانات التمارين (6 تمارين أساسية قوية) ---
+full_body_circuit = [
+    {"name": "Warm-up: Jumping Jacks", "target": 45, "type": "Time", "video": "https://www.youtube.com/watch?v=iSSAk4XCs_4"},
+    {"name": "Wall Push-ups", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=vVfS0vD_Puw"},
+    {"name": "Air Squats", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=1uPrX7tovfM"},
+    {"name": "Bird-Dog Reach", "target": 12, "type": "Reps", "video": "https://www.youtube.com/watch?v=2SSTInV6C_c"},
+    {"name": "Glute Bridges", "target": 15, "type": "Reps", "video": "https://www.youtube.com/watch?v=8bbE6adQTpM"},
+    {"name": "Plank Hold", "target": 30, "type": "Time", "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw"}
 ]
 
-# محاكاة لـ 5 أيام (يمكنك ملء كل يوم بـ 15 تمرين بنفس الطريقة)
 workout_database = {
-    "Day 1: Full Body Power": full_body_plan,
-    "Day 2: Upper Body Focus": full_body_plan, # كرر نفس الهيكل مع تغيير التمارين
-    "Day 3: Lower Body Blast": full_body_plan,
-    "Day 4: Core & Stability": full_body_plan,
-    "Day 5: Total Shred": full_body_plan
+    "Day 1: Full Body Circuit": full_body_circuit,
+    "Day 2: Upper Body & Core": full_body_circuit,
+    "Day 3: Lower Body Focus": full_body_circuit,
+    "Day 4: Mobility & Strength": full_body_circuit,
+    "Day 5: Fat Burner": full_body_circuit
 }
 
 # --- إدارة الحالة ---
 if 'status' not in st.session_state: st.session_state.status = "SELECT"
 if 'current_day' not in st.session_state: st.session_state.current_day = None
 if 'ex_idx' not in st.session_state: st.session_state.ex_idx = 0
+if 'current_set' not in st.session_state: st.session_state.current_set = 1
+if 'total_sets' not in st.session_state: st.session_state.total_sets = 3
 
 def play_audio(url):
     st.components.v1.html(f'<audio autoplay><source src="{url}" type="audio/mpeg"></audio>', height=0)
 
-# --- الواجهة ---
-st.title("🏋️‍♂️ HomeFlex Elite Trainer")
+# --- الواجهة الرئيسية ---
+st.title("🔁 HomeFlex Circuit Trainer")
 
-# 1. شاشة اختيار اليوم
+# 1. شاشة اختيار اليوم وعدد الجولات
 if st.session_state.status == "SELECT":
-    st.header("Select Your Training Day")
-    cols = st.columns(1)
+    st.header("Step 1: Select Your Day")
     for day in workout_database.keys():
         if st.button(f"📅 {day}", use_container_width=True):
             st.session_state.current_day = day
             st.session_state.status = "PREVIEW"
             st.rerun()
 
-# 2. شاشة المعاينة (Preview)
+# 2. شاشة المعاينة وتحديد الجولات
 elif st.session_state.status == "PREVIEW":
     st.header(f"Preview: {st.session_state.current_day}")
-    st.write("Click on any exercise to watch the tutorial video:")
     
+    # اختيار عدد الجولات قبل البدء
+    st.session_state.total_sets = st.slider("Select number of Rounds (Sets):", 1, 5, 3)
+    
+    st.write("Review exercises below:")
     day_exercises = workout_database[st.session_state.current_day]
-    
     for idx, ex in enumerate(day_exercises):
-        with st.expander(f"{idx+1}. {ex['name']} ({ex['target']} {ex['type']})"):
+        with st.expander(f"{idx+1}. {ex['name']}"):
             st.video(ex['video'])
             st.code(ex['name'], language="text")
-            st.write("Tutorial Mode: Watch carefully before you start.")
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🚀 Start Workout Now", use_container_width=True):
+        if st.button("🚀 Start Circuit Training", use_container_width=True):
             st.session_state.ex_idx = 0
+            st.session_state.current_set = 1
             st.session_state.status = "WORKOUT"
             st.rerun()
     with col2:
@@ -73,18 +70,19 @@ elif st.session_state.status == "PREVIEW":
             st.session_state.status = "SELECT"
             st.rerun()
 
-# 3. شاشة التمرين الفعلي (Focus Mode - لا فيديوهات هنا)
+# 3. شاشة التمرين (التركيز)
 elif st.session_state.status == "WORKOUT":
     day_exercises = workout_database[st.session_state.current_day]
     ex = day_exercises[st.session_state.ex_idx]
     
+    st.info(f"⭕ Round: {st.session_state.current_set} / {st.session_state.total_sets}")
     st.markdown(f"### Exercise {st.session_state.ex_idx + 1} of {len(day_exercises)}")
     st.title(ex['name'])
-    st.code(ex['name'], language="text") # لسهولة النسخ
+    st.code(ex['name'], language="text")
     
     st.metric(label="Target", value=f"{ex['target']} {ex['type']}")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         if ex['type'] == "Time":
             if st.button("⏱️ Start/Restart"):
@@ -103,30 +101,26 @@ elif st.session_state.status == "WORKOUT":
 
     with col2:
         if st.button("Skip ⏭️"):
-            if st.session_state.ex_idx < len(day_exercises) - 1:
-                st.session_state.ex_idx += 1
-                st.rerun()
-            else:
-                st.session_state.status = "SELECT"
-                st.rerun()
-    
-    with col3:
-        if st.button("Stop 🛑"):
-            st.session_state.status = "SELECT"
+            st.session_state.status = "REST"
             st.rerun()
 
-    st.progress((st.session_state.ex_idx + 1) / len(day_exercises))
-
-# 4. شاشة الراحة
+# 4. شاشة الراحة مع منطق التكرار الذكي
 elif st.session_state.status == "REST":
     st.subheader("🥤 Rest Interval")
+    
     if st.button("Skip Rest ⏩"):
+        # منطق الانتقال للتمرين التالي أو الجولة التالية
         day_exercises = workout_database[st.session_state.current_day]
         if st.session_state.ex_idx < len(day_exercises) - 1:
             st.session_state.ex_idx += 1
             st.session_state.status = "WORKOUT"
         else:
-            st.session_state.status = "SELECT"
+            if st.session_state.current_set < st.session_state.total_sets:
+                st.session_state.current_set += 1
+                st.session_state.ex_idx = 0
+                st.session_state.status = "WORKOUT"
+            else:
+                st.session_state.status = "SELECT"
         st.rerun()
 
     p = st.empty()
@@ -140,10 +134,14 @@ elif st.session_state.status == "REST":
     if st.session_state.ex_idx < len(day_exercises) - 1:
         st.session_state.ex_idx += 1
         st.session_state.status = "WORKOUT"
-        st.rerun()
     else:
-        st.balloons()
-        st.success("Workout Complete!")
-        time.sleep(3)
-        st.session_state.status = "SELECT"
-        st.rerun()
+        if st.session_state.current_set < st.session_state.total_sets:
+            st.session_state.current_set += 1
+            st.session_state.ex_idx = 0
+            st.session_state.status = "WORKOUT"
+        else:
+            st.balloons()
+            st.success("All Rounds Complete!")
+            time.sleep(3)
+            st.session_state.status = "SELECT"
+    st.rerun()
