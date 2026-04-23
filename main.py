@@ -1,51 +1,58 @@
 import streamlit as st
 import time
 
-# إعدادات واجهة التطبيق
-st.set_page_config(page_title="HomeFlex Pro", page_icon="💪", layout="centered")
+# إعدادات الصفحة
+st.set_page_config(page_title="HomeFlex Pro: YouTube Edition", page_icon="📺")
 
-# قاعدة بيانات التمارين (3 تمارين كمثال، يمكنك تكرار النمط لإضافة المزيد)
+# التنسيق الجمالي
+st.markdown("""
+    <style>
+    .stVideo { border-radius: 15px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,255,204,0.3); }
+    </style>
+    """, unsafe_allow_html=True)
+
+# قاعدة بيانات التمارين مع روابط يوتيوب
 workout_data = [
     {
         "name": "Glute Bridges (جسر الحوض)",
         "target": 12,
         "type": "Reps",
-        "desc": "استلقِ على ظهرك وارفع حوضك للأعلى. هذا التمرين يوقظ عضلاتك بعد جلوس طويل.",
-        "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpueGZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZ力をZWFyY2hfZnVsbCZjdD1n/3o7TKMGpxVMEKExD9u/giphy.gif"
+        "desc": "تمرين أساسي لتنشيط العضلات الخاملة وتقوية أسفل الظهر.",
+        "video": "https://www.youtube.com/watch?v=wPM8icPu6H8"
     },
     {
         "name": "Wall Push-ups (الضغط على الحائط)",
         "target": 10,
         "type": "Reps",
-        "desc": "قف أمام الحائط وادفع بجسمك. ممتاز لتقوية الصدر دون إجهاد المفاصل.",
-        "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnRwaGZxeXJ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZ力をZWFyY2hfZnVsbCZjdD1n/l3vR7CSfS69uSIn9S/giphy.gif"
+        "desc": "بديل آمن وسهل للضغط العادي، يقوي الصدر والأكتاف.",
+        "video": "https://www.youtube.com/watch?v=a6YHbXbeZ3M"
     },
     {
-        "name": "Bird-Dog (وضعية الكلب الطائر)",
+        "name": "Bird-Dog (تمرين الكلب الطائر)",
         "target": 10,
         "type": "Reps",
-        "desc": "مد يدك اليمنى ورجلك اليسرى معاً وأنت على أطرافك الأربعة. رائع لاستقرار الظهر.",
-        "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZ力をZWFyY2hfZnVsbCZjdD1n/3o7TKpxO7XzO5Jp8Ry/giphy.gif"
+        "desc": "يركز على التوازن وتقوية عضلات الكور والظهر.",
+        "video": "https://www.youtube.com/watch?v=wiFNA3sqjCb"
     },
     {
         "name": "Plank (تمرين البلانك)",
         "target": 30,
         "type": "Time",
-        "desc": "ثبات كامل للجسم. تنفس بعمق وحافظ على استقامة ظهرك.",
-        "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnJ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4bmZ4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZ力をZWFyY2hfZnVsbCZjdD1n/3o7TKSj0S1i/giphy.gif"
+        "desc": "أفضل تمرين لشد الجسم بالكامل وزيادة التحمل.",
+        "video": "https://www.youtube.com/watch?v=pSHjTRCQxIw"
     }
 ]
 
-# إدارة الحالة (State Management)
+# إدارة الحالة
 if 'step' not in st.session_state:
-    st.session_state.step = 0  # index للتمرين
+    st.session_state.step = 0
 if 'is_resting' not in st.session_state:
     st.session_state.is_resting = False
 
 # شاشة الراحة
 def show_rest():
     st.warning("🥤 وقت الراحة (30 ثانية)")
-    st.write("تنفس بعمق، استعد للتمرين التالي...")
+    st.write("خذ نفساً عميقاً واستعد للتمرين التالي...")
     placeholder = st.empty()
     for i in range(30, 0, -1):
         placeholder.subheader(f"متبقي: {i} ثانية")
@@ -54,8 +61,8 @@ def show_rest():
     st.session_state.step += 1
     st.rerun()
 
-# واجهة التطبيق الرئيسية
-st.title("💪 HomeFlex: مستشارك الرياضي")
+# واجهة التطبيق
+st.title("📺 HomeFlex YouTube Edition")
 
 if st.session_state.is_resting:
     show_rest()
@@ -63,42 +70,36 @@ else:
     if st.session_state.step < len(workout_data):
         current_ex = workout_data[st.session_state.step]
         
-        # 1. عرض الصورة المتحركة
-        st.image(current_ex['gif'], use_container_width=True)
+        # 1. عرض فيديو يوتيوب
+        st.video(current_ex['video'])
         
         # 2. معلومات التمرين
         st.header(current_ex['name'])
         st.info(current_ex['desc'])
-        st.subheader(f"الهدف: {current_ex['target']} {'ثانية' if current_ex['type'] == 'Time' else 'عدات'}")
+        st.subheader(f"الهدف المطلوب: {current_ex['target']} {'ثانية' if current_ex['type'] == 'Time' else 'عدات'}")
         
-        # 3. شريط التقدم العام
-        progress = (st.session_state.step) / len(workout_data)
-        st.progress(progress)
-        
-        # 4. أزرار التحكم
+        # 3. التحكم والعداد
         col1, col2 = st.columns(2)
-        
         with col1:
             if current_ex['type'] == 'Time':
-                if st.button("⏱️ ابدأ المؤقت"):
+                if st.button("⏱️ ابدأ العداد"):
                     t_place = st.empty()
                     for s in range(current_ex['target'], 0, -1):
                         t_place.header(f"🔥 {s} ثانية")
                         time.sleep(1)
-                    st.success("تم الإنجاز!")
+                    st.success("تم!")
         
         with col2:
-            if st.button("التالي (راحة) ➡️"):
+            if st.button("انتهيت! (بدء الراحة) ➡️"):
                 st.session_state.is_resting = True
                 st.rerun()
+        
+        # شريط التقدم
+        st.progress((st.session_state.step) / len(workout_data))
                 
     else:
         st.balloons()
-        st.success("🏆 بطل! أنهيت تمرين اليوم بنجاح.")
-        if st.button("البدء من جديد"):
+        st.success("🏆 بطل! أنهيت جدول اليوم بنجاح.")
+        if st.button("البدء من جديد (يوم 1)"):
             st.session_state.step = 0
             st.rerun()
-
-# تذييل بسيط
-st.markdown("---")
-st.caption("تذكر: الاستمرارية أهم من القوة. ابدأ اليوم!")
