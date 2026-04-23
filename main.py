@@ -1,229 +1,100 @@
 import streamlit as st
 import time
-import json
-import os
-import random
 
-st.set_page_config(page_title="HomeFlex Elite", page_icon="💪", layout="wide")
+# --- APP CONFIG ---
+st.set_page_config(page_title="HomeFit - No Equipment", page_icon="💪")
 
-# ================== STORAGE ==================
-DATA_FILE = "user_data.json"
+# --- CUSTOM CSS FOR MODERN LOOK ---
+st.markdown("""
+    <style>
+    .stButton>button { width: 100%; border-radius: 20px; height: 3em; background-color: #007BFF; color: white; }
+    .exercise-card { padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
+    .copy-text { font-size: 0.8em; color: #666; }
+    </style>
+    """, unsafe_allow_html=True)
 
-def load_data():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
-    return {"history": [], "points": 0, "streak": 0}
-
-def save_data(data):
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f)
-
-user_data = load_data()
-
-# ================== DATABASE ==================
-workout_database = {
-    "Arms (Biceps & Triceps)": [
-        {
-            "name": "Wall Bicep Curls",
-            "desc": "Controlled curl motion focusing on tension.",
-            "target": 15,
-            "type": "Reps",
-            "video": "https://www.youtube.com/watch?v=iOaT_u6v-s8",
-            "alts": [
-                {"name": "Towel Bicep Curls", "desc": "Use towel resistance.", "video": "https://www.youtube.com/watch?v=av7-8igSXTs"},
-                {"name": "Door Frame Rows", "desc": "Pull using door frame.", "video": "https://www.youtube.com/watch?v=GZbfZ033f74"}
-            ]
-        },
-        {
-            "name": "Chair Tricep Dips",
-            "desc": "Lower body using chair.",
-            "target": 12,
-            "type": "Reps",
-            "video": "https://www.youtube.com/watch?v=0326dy_-CzM",
-            "alts": [
-                {"name": "Bench Dips", "desc": "Same movement on bench.", "video": "https://www.youtube.com/watch?v=0326dy_-CzM"},
-                {"name": "Overhead Extension", "desc": "Bodyweight extension.", "video": "https://www.youtube.com/watch?v=_gsUck-7M74"}
-            ]
-        }
+# --- DATABASE (Exercises) ---
+WORKOUTS = {
+    "Monday: Full Body Intro": [
+        {"name": "Standard Push-ups", "desc": "Keep your core tight and back straight.", "reps": "12 Reps"},
+        {"name": "Bodyweight Squats", "desc": "Sit back as if into a chair, keep heels down.", "reps": "15 Reps"},
+        {"name": "Plank", "desc": "Hold a straight line from head to heels.", "reps": "30 Seconds"},
+        {"name": "Lunges", "desc": "Step forward until both knees are at 90 degrees.", "reps": "10 per leg"},
+        {"name": "Glute Bridges", "desc": "Lying on back, lift hips toward the ceiling.", "reps": "15 Reps"},
+        {"name": "Mountain Climbers", "desc": "Drive knees toward chest rapidly.", "reps": "30 Seconds"},
+        {"name": "Bird Dog", "desc": "Opposite arm and leg extension for stability.", "reps": "10 Reps"}
     ],
-
-    "Legs (Quads & Glutes)": [
-        {
-            "name": "Chair Squats",
-            "desc": "Sit and stand with control.",
-            "target": 15,
-            "type": "Reps",
-            "video": "https://www.youtube.com/watch?v=1uPrX7tovfM",
-            "alts": [
-                {"name": "Sumo Squats", "desc": "Wide stance squat.", "video": "https://www.youtube.com/watch?v=aclHkVaku9U"},
-                {"name": "Step Ups", "desc": "Step onto chair.", "video": "https://www.youtube.com/watch?v=dQqApCGd5Ss"}
-            ]
-        }
+    "Tuesday: Core & Abs": [
+        {"name": "Crunches", "desc": "Lift shoulders off ground using abs.", "reps": "20 Reps"},
+        {"name": "Leg Raises", "desc": "Lower legs slowly without touching floor.", "reps": "12 Reps"},
+        {"name": "Russian Twists", "desc": "Rotate torso side to side.", "reps": "20 Reps"},
+        {"name": "Bicycle Crunches", "desc": "Elbow to opposite knee.", "reps": "20 Reps"},
+        {"name": "Flutter Kicks", "desc": "Small, fast leg movements.", "reps": "30 Seconds"},
+        {"name": "Side Plank (Left)", "desc": "Balance on one forearm.", "reps": "30 Seconds"},
+        {"name": "Side Plank (Right)", "desc": "Balance on the other forearm.", "reps": "30 Seconds"}
     ]
+    # Note: You can add more days (Wednesday: Legs, Thursday: Upper Body, etc.)
 }
 
-# ================== SESSION ==================
-if "page" not in st.session_state: st.session_state.page = "menu"
-if "plan" not in st.session_state: st.session_state.plan = []
-if "selected" not in st.session_state: st.session_state.selected = {}
-if "ex_idx" not in st.session_state: st.session_state.ex_idx = 0
-if "set" not in st.session_state: st.session_state.set = 1
-if "sets" not in st.session_state: st.session_state.sets = 3
+# --- APP HEADER ---
+st.title("🏠 HomeFit")
+st.subheader("High-Quality Minimalist Training")
 
-# ================== HEADER ==================
-st.title("🔥 HomeFlex Elite")
+# Select Day
+day = st.selectbox("Choose your workout day:", list(WORKOUTS.keys()))
+exercises = WORKOUTS[day]
 
-col1, col2, col3 = st.columns(3)
-col1.metric("🔥 Streak", user_data["streak"])
-col2.metric("🏆 Points", user_data["points"])
-col3.metric("📈 Level", user_data["points"] // 100)
+# --- PREVIEW SECTION ---
+with st.expander("🔍 Preview Exercises (Learn Before Starting)"):
+    st.info("Quality > Quantity. Click the name to copy and search on YouTube.")
+    for ex in exercises:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown(f"**{ex['name']}** ({ex['reps']})")
+            st.caption(ex['desc'])
+        with col2:
+            if st.button("Copy Name", key=ex['name']):
+                st.code(ex['name']) # Allows easy copy-pasting
 
 st.divider()
 
-# ================== MENU ==================
-if st.session_state.page == "menu":
+# --- WORKOUT SESSION ---
+if 'round' not in st.session_state:
+    st.session_state.round = 1
 
-    st.subheader("Choose Workout")
+st.header(f"Round {st.session_state.round} / 3")
+progress = st.progress(0)
 
-    for day in workout_database:
-        if st.button(day, use_container_width=True):
-            st.session_state.current_day = day
-            st.session_state.page = "preview"
-            st.session_state.selected = {}
-            st.rerun()
-
-    if st.button("⚡ Quick Start"):
-        st.session_state.current_day = random.choice(list(workout_database.keys()))
-        st.session_state.page = "preview"
-        st.rerun()
-
-# ================== PREVIEW ==================
-elif st.session_state.page == "preview":
-
-    st.header(st.session_state.current_day)
-
-    exercises = workout_database[st.session_state.current_day]
-
+# Simulate Workout Flow
+if st.button("🏁 Start/Next Exercise"):
     for i, ex in enumerate(exercises):
-
-        selected = st.session_state.selected.get(i, ex)
-
-        st.subheader(f"Exercise {i+1}")
-
-        st.video(selected["video"])
-
-        c1, c2 = st.columns([4,1])
-        with c1:
-            st.markdown(f"### {selected['name']}")
-        with c2:
-            st.code(selected["name"])
-
-        st.info(selected["desc"])
-        st.metric("Target", f"{selected['target']} {selected['type']}")
-
-        st.write("Alternatives:")
-
-        cols = st.columns(2)
-
-        for j, alt in enumerate(ex["alts"]):
-            with cols[j]:
-                if st.button(alt["name"], key=f"{i}_{j}"):
-                    st.session_state.selected[i] = {
-                        "name": alt["name"],
-                        "video": alt["video"],
-                        "desc": alt["desc"],
-                        "target": ex["target"],
-                        "type": ex["type"]
-                    }
-                    st.rerun()
-
-        if i in st.session_state.selected:
-            if st.button("Use Original", key=f"reset_{i}"):
-                del st.session_state.selected[i]
-                st.rerun()
-
-        st.divider()
-
-    # build plan
-    plan = []
-    for i, ex in enumerate(exercises):
-        plan.append(st.session_state.selected.get(i, ex))
-
-    st.session_state.plan = plan
-
-    st.session_state.sets = st.slider("Sets", 1, 5, 3)
-
-    if st.button("🚀 Start"):
-        st.session_state.ex_idx = 0
-        st.session_state.set = 1
-        st.session_state.page = "workout"
-        st.rerun()
-
-    if st.button("⬅️ Back"):
-        st.session_state.page = "menu"
-        st.rerun()
-
-# ================== WORKOUT ==================
-elif st.session_state.page == "workout":
-
-    ex = st.session_state.plan[st.session_state.ex_idx]
-
-    st.warning(f"Set {st.session_state.set}/{st.session_state.sets}")
-    st.title(ex["name"])
-    st.metric("Target", f"{ex['target']} {ex['type']}")
-
-    progress = (st.session_state.ex_idx + 1) / len(st.session_state.plan)
-    st.progress(progress)
-
-    if ex["type"] == "Time":
-        if st.button("Start Timer"):
-            for i in range(ex["target"], -1, -1):
-                st.write(f"{i}s")
+        # Display Exercise
+        st.success(f"**Current: {ex['name']}**")
+        st.write(f"Target: {ex['reps']}")
+        
+        # Progress Bar
+        percent_complete = int(((i + 1) / len(exercises)) * 100)
+        progress.progress(percent_complete)
+        
+        # Rest Timer
+        with st.empty():
+            for seconds in range(15, 0, -1):
+                st.write(f"⏳ Rest: {seconds}s before next move...")
                 time.sleep(1)
-            st.session_state.page = "rest"
-            st.rerun()
+            st.write("🔥 GO!")
+    
+    if st.session_state.round < 3:
+        st.session_state.round += 1
+        st.warning(f"Round {st.session_state.round - 1} Complete! Get ready for Round {st.session_state.round}.")
     else:
-        if st.button("Done"):
-            st.session_state.page = "rest"
-            st.rerun()
+        st.balloons()
+        st.success("Workout Finished! 3 Rounds complete. You are getting stronger!")
+        st.session_state.round = 1 # Reset
 
-    if st.button("Skip"):
-        st.session_state.page = "rest"
-        st.rerun()
-
-# ================== REST ==================
-elif st.session_state.page == "rest":
-
-    st.subheader("Rest Time")
-
-    rest_time = 20 if st.session_state.plan[st.session_state.ex_idx]["type"] == "Time" else 30
-
-    for i in range(rest_time, -1, -1):
-        st.metric("Rest", f"{i}s")
-        time.sleep(1)
-
-    if st.session_state.ex_idx < len(st.session_state.plan) - 1:
-        st.session_state.ex_idx += 1
-        st.session_state.page = "workout"
-    else:
-        if st.session_state.set < st.session_state.sets:
-            st.session_state.set += 1
-            st.session_state.ex_idx = 0
-            st.session_state.page = "workout"
-        else:
-            st.success("Workout Finished 🎉")
-
-            # تحديث البيانات
-            user_data["points"] += 20
-            user_data["streak"] += 1
-            user_data["history"].append({
-                "day": st.session_state.current_day,
-                "time": time.time()
-            })
-            save_data(user_data)
-
-            time.sleep(2)
-            st.session_state.page = "menu"
-
+if st.button("Reset Workout"):
+    st.session_state.round = 1
     st.rerun()
+
+# --- FOOTER ---
+st.markdown("---")
+st.caption("Stay consistent. Movement is medicine.")
